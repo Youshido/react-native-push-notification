@@ -16,12 +16,9 @@
     "apns",
     "gcm"
   ],
-  "bugs": {
-    "url": "https://github.com/zo0r/react-native-push-notification/issues"
-  },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com:zo0r/react-native-push-notification.git"
+    "url": "https://github.com/Youshido/react-native-push-notification.git"
   },
   "peerDependencies": {
     "react-native": ">=0.33"
