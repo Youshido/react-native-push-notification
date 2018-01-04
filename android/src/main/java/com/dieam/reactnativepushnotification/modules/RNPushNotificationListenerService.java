@@ -3,9 +3,12 @@ package com.dieam.reactnativepushnotification.modules;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.Application;
+import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.util.Log;
 
 import com.dieam.reactnativepushnotification.helpers.ApplicationBadgeHelper;
@@ -106,11 +109,43 @@ public class RNPushNotificationListenerService extends GcmListenerService {
         }
 
         Log.v(LOG_TAG, "sendNotification: " + bundle);
+        String actionType = "";
+        try {
+            JSONObject APSJson = null;
+            String APSData = bundle.get("data").toString();
+            if (!APSData.isEmpty()) {
+                APSJson = new JSONObject(APSData);
+                actionType = APSJson.get("type").toString().toLowerCase();
+            }
+        } catch(Exception e) {
+            e.printStackTrace();
+            return;
+        }
 
         if (!isForeground) {
             Application applicationContext = (Application) context.getApplicationContext();
             RNPushNotificationHelper pushNotificationHelper = new RNPushNotificationHelper(applicationContext);
             pushNotificationHelper.sendToNotificationCentre(bundle);
+
+            String packageName = context.getPackageName();
+            String acivityIntentActionName = RNPushNotification.activityActionName;
+            if (actionType.equals(acivityIntentActionName.toLowerCase())) {
+                Intent intent = new Intent(packageName + ".MainActivity");
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                applicationContext.startActivity(intent);
+
+                // Turn on the screen for notification
+                PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+                boolean result= Build.VERSION.SDK_INT>= Build.VERSION_CODES.KITKAT_WATCH&&powerManager.isInteractive()|| Build.VERSION.SDK_INT< Build.VERSION_CODES.KITKAT_WATCH&&powerManager.isScreenOn();
+
+                if (!result){
+                    PowerManager.WakeLock wl = powerManager.newWakeLock(PowerManager.FULL_WAKE_LOCK |PowerManager.ACQUIRE_CAUSES_WAKEUP |PowerManager.ON_AFTER_RELEASE,"MH24_SCREENLOCK");
+                    wl.acquire(10000);
+                    PowerManager.WakeLock wl_cpu = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,"MH24_SCREENLOCK");
+                    wl_cpu.acquire(10000);
+                }
+            }
+
         }
     }
 
