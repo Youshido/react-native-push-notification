@@ -81,10 +81,14 @@ Notifications.configure = function(options: Object) {
 		this._onNotification = this._onNotification.bind(this);
 		this._onRemoteFetch = this._onRemoteFetch.bind(this);
 		this.callNative( 'addEventListener', [ 'register', this._onRegister ] );
+
 		this.callNative( 'addEventListener', [ 'notification', this._onNotification ] );
 		this.callNative( 'addEventListener', [ 'localNotification', this._onNotification ] );
 		Platform.OS === 'android' ? this.callNative( 'addEventListener', [ 'remoteFetch', this._onRemoteFetch ] ) : null
 
+    if (typeof options.activityActionName !== 'undefined') {
+      Platform.OS === 'android' ? this.callNative('setActivityIntentAction', [options.activityActionName]) : null
+    }
 		this.isLoaded = true;
 	}
 

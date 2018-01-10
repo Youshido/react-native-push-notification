@@ -121,7 +121,7 @@ public class RNPushNotification extends ReactContextBaseJavaModule implements Ac
         activityActionName = actionName;
     }
 
-    static String activityActionName = "";
+    static String activityActionName = "call_request";
 
     @ReactMethod
     public void presentLocalNotification(ReadableMap details) {

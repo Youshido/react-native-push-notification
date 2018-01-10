@@ -108,14 +108,17 @@ public class RNPushNotificationListenerService extends GcmListenerService {
             jsDelivery.notifyRemoteFetch(bundle);
         }
 
-        Log.v(LOG_TAG, "sendNotification: " + bundle);
+        Log.i(LOG_TAG, "GOT NOTIFICATION");
         String actionType = "";
         try {
-            JSONObject APSJson = null;
+            JSONObject APSJson;
             String APSData = bundle.get("data").toString();
             if (!APSData.isEmpty()) {
                 APSJson = new JSONObject(APSData);
                 actionType = APSJson.get("type").toString().toLowerCase();
+                Log.i(LOG_TAG, "with Type: " + actionType);
+                Log.i(LOG_TAG, "Super Type: " + RNPushNotification.activityActionName);
+
             }
         } catch(Exception e) {
             e.printStackTrace();
@@ -123,16 +126,15 @@ public class RNPushNotificationListenerService extends GcmListenerService {
         }
 
         if (!isForeground) {
+            Log.w(LOG_TAG, "NOT IN FOREGROUND");
+
             Application applicationContext = (Application) context.getApplicationContext();
             RNPushNotificationHelper pushNotificationHelper = new RNPushNotificationHelper(applicationContext);
             pushNotificationHelper.sendToNotificationCentre(bundle);
 
             String packageName = context.getPackageName();
-            String acivityIntentActionName = RNPushNotification.activityActionName;
-            if (actionType.equals(acivityIntentActionName.toLowerCase())) {
-                Intent intent = new Intent(packageName + ".MainActivity");
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                applicationContext.startActivity(intent);
+            if (actionType.equals(RNPushNotification.activityActionName.toLowerCase())) {
+                Log.w(LOG_TAG, "LAUNCHING APP!");
 
                 // Turn on the screen for notification
                 PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
@@ -144,6 +146,12 @@ public class RNPushNotificationListenerService extends GcmListenerService {
                     PowerManager.WakeLock wl_cpu = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,"MH24_SCREENLOCK");
                     wl_cpu.acquire(10000);
                 }
+
+                Intent intent = new Intent(packageName + ".MainActivity");
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                intent.addCategory(Intent.CATEGORY_LAUNCHER);
+//                intent.setAction(Intent.ACTION_MAIN);
+                applicationContext.startActivity(intent);
             }
 
         }
