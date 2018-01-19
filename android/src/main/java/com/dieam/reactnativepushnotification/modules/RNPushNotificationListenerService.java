@@ -3,6 +3,8 @@ package com.dieam.reactnativepushnotification.modules;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.Application;
+import android.app.KeyguardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -26,6 +28,9 @@ import java.util.Random;
 import static com.dieam.reactnativepushnotification.modules.RNPushNotification.LOG_TAG;
 
 public class RNPushNotificationListenerService extends GcmListenerService {
+
+    private InCallWakeLockUtils wakeLockUtils;
+
 
     @Override
     public void onMessageReceived(String from, final Bundle bundle) {
@@ -120,7 +125,7 @@ public class RNPushNotificationListenerService extends GcmListenerService {
                 Log.i(LOG_TAG, "Super Type: " + RNPushNotification.activityActionName);
 
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return;
         }
@@ -129,31 +134,17 @@ public class RNPushNotificationListenerService extends GcmListenerService {
             Log.w(LOG_TAG, "NOT IN FOREGROUND");
 
             Application applicationContext = (Application) context.getApplicationContext();
-            RNPushNotificationHelper pushNotificationHelper = new RNPushNotificationHelper(applicationContext);
-            pushNotificationHelper.sendToNotificationCentre(bundle);
 
             String packageName = context.getPackageName();
             if (actionType.equals(RNPushNotification.activityActionName.toLowerCase())) {
                 Log.w(LOG_TAG, "LAUNCHING APP!");
 
-                // Turn on the screen for notification
-                PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
-                boolean result= Build.VERSION.SDK_INT>= Build.VERSION_CODES.KITKAT_WATCH&&powerManager.isInteractive()|| Build.VERSION.SDK_INT< Build.VERSION_CODES.KITKAT_WATCH&&powerManager.isScreenOn();
-
-                if (!result){
-                    PowerManager.WakeLock wl = powerManager.newWakeLock(PowerManager.FULL_WAKE_LOCK |PowerManager.ACQUIRE_CAUSES_WAKEUP |PowerManager.ON_AFTER_RELEASE,"MH24_SCREENLOCK");
-                    wl.acquire(10000);
-                    PowerManager.WakeLock wl_cpu = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,"MH24_SCREENLOCK");
-                    wl_cpu.acquire(10000);
-                }
-
                 Intent intent = new Intent(packageName + ".MainActivity");
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//                intent.addCategory(Intent.CATEGORY_LAUNCHER);
-//                intent.setAction(Intent.ACTION_MAIN);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                 applicationContext.startActivity(intent);
             }
-
+            RNPushNotificationHelper pushNotificationHelper = new RNPushNotificationHelper(applicationContext);
+            pushNotificationHelper.sendToNotificationCentre(bundle);
         }
     }
 
