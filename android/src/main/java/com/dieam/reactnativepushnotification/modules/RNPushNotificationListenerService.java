@@ -29,9 +29,6 @@ import static com.dieam.reactnativepushnotification.modules.RNPushNotification.L
 
 public class RNPushNotificationListenerService extends GcmListenerService {
 
-    private InCallWakeLockUtils wakeLockUtils;
-
-
     @Override
     public void onMessageReceived(String from, final Bundle bundle) {
         JSONObject data = getPushData(bundle.getString("data"));
